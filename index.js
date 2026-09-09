@@ -120,8 +120,7 @@ app.use('/webhooks', (req, res, next) => {
 app.get('/', (req, res) => {
   const { shop } = req.query;
   if (!shop) {
-    res.redirect('https://www.profitfirstanalytics.co.in/');
-    return res.send(`<!doctype html><html><head><title>Profit First</title></head><body><h2>Welcome to Profit First App</h2></body></html>`);
+    return res.redirect('https://www.profitfirstanalytics.co.in/'); // 🟢 Correct: Returns immediately after redirecting
   }
   return res.redirect(`/connect?shop=${encodeURIComponent(shop)}`);
 });
