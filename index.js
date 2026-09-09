@@ -6,7 +6,10 @@ import bodyParser from 'body-parser';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import mongoose from 'mongoose';
+
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
+
 
 dotenv.config();
 
@@ -22,26 +25,20 @@ const {
   PORT = 3000,
   APP_UI_PATH = '/app',
 } = process.env;
-const MONGODB_URI="mongodb+srv://asalimunaafa:2JXVYLlkLFsKu5M5@cluster0.ufhmr.mongodb.net/shopifytest?retryWrites=true&w=majority&appName=Cluster0";
-if (!API_KEY || !API_SECRET || !SCOPES || !HOST || !MONGODB_URI) {
+if (!API_KEY || !API_SECRET || !SCOPES || !HOST) {
   console.error('❌ Missing required environment variables');
   process.exit(1);
 }
 
 /*****************************************************************
- * DATABASE SET‑UP (MongoDB via Mongoose)
+ * DATABASE SET‑UP (DynamoDB)
  *****************************************************************/
-await mongoose.connect(MONGODB_URI);
-console.log('✅ Connected to MongoDB');
+const dynamoDBClient = new DynamoDBClient({ region: process.env.AWS_REGION });
+const docClient = DynamoDBDocumentClient.from(dynamoDBClient);
 
-const tokenSchema = new mongoose.Schema({
-  shop: { type: String, required: true, unique: true, index: true },
-  accessToken: { type: String, required: true },
-  scope: String,
-  createdAt: { type: Date, default: Date.now },
-});
+// Since we're using DynamoDB, we don't need a Mongoose schema here.
+// Instead, we'll define the token structure directly when interacting with DynamoDB.
 
-const Token = mongoose.model('Token', tokenSchema);
 
 /*****************************************************************
  * APP INITIALISATION
@@ -94,10 +91,14 @@ function verifyOAuthCallback(req) {
  */
 async function getToken(shop) {
   if (cache.has(shop)) return cache.get(shop);
-  const record = await Token.findOne({ shop });
-  if (record) {
-    cache.set(shop, record.accessToken);
-    return record.accessToken;
+  const command = new GetCommand({
+    TableName: process.env.DYNAMODB_TOKENS_TABLE,
+    Key: { shop }
+  });
+  const { Item } = await docClient.send(command);
+  if (Item) {
+    cache.set(shop, Item.accessToken);
+    return Item.accessToken;
   }
   console.warn(`⚠️ No token on record for ${shop}`);
   throw new Error('Missing token for shop – re‑auth required');
@@ -163,11 +164,15 @@ app.get('/auth/callback', async (req, res) => {
     const accessToken = tokenRes.data.access_token;
 
     // Persist to DB (upsert)
-    await Token.findOneAndUpdate(
-      { shop },
-      { accessToken, scope: SCOPES },
-      { upsert: true, new: true }
-    );
+    const putCommand = new PutCommand({
+      TableName: process.env.DYNAMODB_TOKENS_TABLE,
+      Item: {
+        shop,
+        accessToken,
+        scope: SCOPES
+      }
+    });
+    await docClient.send(putCommand);
     cache.set(shop, accessToken);
     console.log(`✅ Token stored for ${shop}`);
 

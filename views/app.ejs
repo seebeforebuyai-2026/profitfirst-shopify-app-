@@ -2,357 +2,99 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Shopify App Dashboard</title>
+  <title>ProfitFirst Analytics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- Bootstrap 5 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <!-- Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css" rel="stylesheet" />
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-
   <style>
+    /* Full screen centered layout */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
+      background: #0a1628;       /* dark navy background */
       display: flex;
-      margin: 0;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       min-height: 100vh;
-      font-family: sans-serif;
-    }
-    /* Sidebar */
-    #sidebar {
-      width: 20%;
-      max-width: 300px;
-      background: #343a40;
-      color: #adb5bd;
-      padding-top: 56px;
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      overflow-y: auto;
-    }
-    #sidebar .nav-link {
-      color: #adb5bd;
-    }
-    #sidebar .nav-link:hover,
-    #sidebar .nav-link.active {
+      font-family: 'Inter', sans-serif;
       color: #fff;
-      background: #495057;
     }
-    /* Content area */
-    #content {
-      flex: 1;
-      margin-left: 20%;
-      padding: 56px 20px 20px;
-      overflow-y: auto;
-      background: #f8f9fa;
+
+    /* Logo */
+    .logo { width: 180px; margin-bottom: 40px; }
+
+    /* Spinner */
+    .spinner {
+      width: 48px; height: 48px;
+      border: 4px solid rgba(255,255,255,0.15);
+      border-top-color: #26b35e;   /* green accent */
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      margin-bottom: 28px;
     }
-    .navbar.fixed-top {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      z-index: 200;
-    }
-    .overview-card, .chart-card {
-      border: none;
-      border-radius: .75rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      background: #fff;
-    }
-    .overview-card:hover {
-      transform: translateY(-4px);
-    }
-    .overview-icon {
-      font-size: 2rem;
-      opacity: .3;
-    }
-    .chart-card {
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
-    .chart-container {
-      height: 300px;
-    }
-    section {
-      margin-bottom: 2rem;
-    }
-    h2 {
-      margin-bottom: 1rem;
-    }
-    .table-responsive {
-      max-height: 400px;
-      overflow-y: auto;
-      background: #fff;
-      padding: 1rem;
-      border-radius: .5rem;
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Text */
+    .main-text { font-size: 1.25rem; font-weight: 600; margin-bottom: 10px; }
+    .sub-text   { font-size: 0.9rem; color: rgba(255,255,255,0.5); }
+
+    /* Error state (hidden by default) */
+    .error-box {
+      display: none;
+      margin-top: 30px;
+      background: rgba(220, 53, 69, 0.15);
+      border: 1px solid rgba(220, 53, 69, 0.4);
+      padding: 14px 24px;
+      border-radius: 8px;
+      color: #ff6b6b;
+      font-size: 0.9rem;
+      text-align: center;
+      max-width: 360px;
     }
   </style>
 </head>
 <body>
-  <!-- Top Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">Profit First Analytics</a>
-      <div class="ms-auto text-white">Shop: <strong><%= shop %></strong></div>
-    </div>
-  </nav>
 
-  <!-- Sidebar -->
-  <nav id="sidebar" class="d-flex flex-column pt-3">
-    <ul class="nav nav-pills flex-column mb-auto">
-      <li class="nav-item"><a href="#overview" class="nav-link active"><i class="bi bi-speedometer2 me-2"></i>Overview</a></li>
-      <li class="nav-item"><a href="#charts" class="nav-link"><i class="bi bi-bar-chart-line me-2"></i>Charts</a></li>
-      <li class="nav-item"><a href="#orders" class="nav-link"><i class="bi bi-bag me-2"></i>Orders</a></li>
-      <li class="nav-item"><a href="#products" class="nav-link"><i class="bi bi-box-seam me-2"></i>Products</a></li>
-      <li class="nav-item"><a href="#customers" class="nav-link"><i class="bi bi-people me-2"></i>Customers</a></li>
-    </ul>
-  </nav>
+  <!-- Logo -->
+  <img
+    class="logo"
+    src="https://res.cloudinary.com/dqdvr35aj/image/upload/v1748330108/Logo1_zbbbz4.png"
+    alt="ProfitFirst Analytics"
+  />
 
-  <!-- Main Content -->
-  <div id="content">
+  <!-- Spinner -->
+  <div class="spinner"></div>
 
-    <!-- Overview Metrics -->
-    <section id="overview">
-      <h2>Overview Metrics</h2>
-      <div class="row gy-3">
-        <div class="col-lg-3 col-md-4 col-sm-6">
-          <div class="card overview-card p-3 h-100">
-            <div class="d-flex align-items-center">
-              <i class="bi bi-currency-rupee overview-icon text-success"></i>
-              <div class="ms-3">
-                <div class="h5" id="totalSales">—</div>
-                <small class="text-muted">Total Sales</small>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6">
-          <div class="card overview-card p-3 h-100">
-            <div class="d-flex align-items-center">
-              <i class="bi bi-bag overview-icon text-primary"></i>
-              <div class="ms-3">
-                <div class="h5" id="totalOrders">—</div>
-                <small class="text-muted">Total Orders</small>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6">
-          <div class="card overview-card p-3 h-100">
-            <div class="d-flex align-items-center">
-              <i class="bi bi-people overview-icon text-info"></i>
-              <div class="ms-3">
-                <div class="h5" id="totalCustomers">—</div>
-                <small class="text-muted">Total Customers</small>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6">
-          <div class="card overview-card p-3 h-100">
-            <div class="d-flex align-items-center">
-              <i class="bi bi-calculator overview-icon text-warning"></i>
-              <div class="ms-3">
-                <div class="h5" id="avgOrderValue">—</div>
-                <small class="text-muted">Avg Order Value</small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row gy-3 mt-3">
-        <div class="col-lg-3 col-md-4 col-sm-6">
-          <div class="card overview-card p-3 h-100">
-            <div class="d-flex align-items-center">
-              <i class="bi bi-person-plus overview-icon text-success"></i>
-              <div class="ms-3">
-                <div class="h5" id="newCustomers">—</div>
-                <small class="text-muted">New Customers</small>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6">
-          <div class="card overview-card p-3 h-100">
-            <div class="d-flex align-items-center">
-              <i class="bi bi-person-check overview-icon text-primary"></i>
-              <div class="ms-3">
-                <div class="h5" id="returningCustomers">—</div>
-                <small class="text-muted">Returning Customers</small>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6">
-          <div class="card overview-card p-3 h-100">
-            <div class="d-flex align-items-center">
-              <i class="bi bi-star overview-icon text-warning"></i>
-              <div class="ms-3">
-                <div class="h5 text-truncate" id="bestProduct">—</div>
-                <small class="text-muted">Best Selling</small>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6">
-          <div class="card overview-card p-3 h-100">
-            <div class="d-flex align-items-center">
-              <i class="bi bi-star-half overview-icon text-danger"></i>
-              <div class="ms-3">
-                <div class="h5 text-truncate" id="leastProduct">—</div>
-                <small class="text-muted">Lowest Selling</small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+  <!-- Text -->
+  <div class="main-text">Connecting your store...</div>
+  <div class="sub-text">Please wait while we set up your dashboard</div>
 
-    <!-- Charts -->
-    <section id="charts">
-      <h2>Charts & Trends</h2>
-      <div class="row gy-4">
-        <div class="col-lg-6">
-          <div class="card chart-card">
-            <h6>Sales Over Time</h6>
-            <div class="chart-container"><canvas id="salesChart"></canvas></div>
-          </div>
-        </div>
-        <div class="col-lg-6">
-          <div class="card chart-card">
-            <h6>Customer Types</h6>
-            <div class="chart-container"><canvas id="customerChart"></canvas></div>
-          </div>
-        </div>
-        <div class="col-lg-6">
-          <div class="card chart-card">
-            <h6>Top Products</h6>
-            <div class="chart-container"><canvas id="productChart"></canvas></div>
-          </div>
-        </div>
-        <div class="col-lg-6">
-          <div class="card chart-card">
-            <h6>Orders Per Day</h6>
-            <div class="chart-container"><canvas id="ordersChart"></canvas></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Orders Table -->
-    <section id="orders">
-      <h2>Recent Orders</h2>
-      <div class="table-responsive">
-        <table class="table table-striped align-middle">
-          <thead class="table-dark">
-            <tr><th>Order #</th><th>Date</th><th>Total</th></tr>
-          </thead>
-          <tbody id="orders-table"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- Products Table -->
-    <section id="products">
-      <h2>Products</h2>
-      <div class="table-responsive">
-        <table class="table table-striped align-middle">
-          <thead class="table-dark">
-            <tr><th>Title</th><th>Inventory</th></tr>
-          </thead>
-          <tbody id="products-table"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- Customers Table -->
-    <section id="customers">
-      <h2>Customers</h2>
-      <div class="table-responsive">
-        <table class="table table-striped align-middle">
-          <thead class="table-dark">
-            <tr><th>Name</th><th>Email</th></tr>
-          </thead>
-          <tbody id="customers-table"></tbody>
-        </table>
-      </div>
-    </section>
-
+  <!-- Error box (shown only on failure) -->
+  <div class="error-box" id="error-box">
+    Something went wrong. Please close this and try again from Shopify.
   </div>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    // EJS se shop value inject hogi
     const shop = '<%= shop %>';
-    function groupByDate(items,key) {
-      return items.reduce((a,i) => {
-        const d = new Date(i[key]).toISOString().split('T')[0];
-        a[d] = (a[d]||0) + parseFloat(i.totalPriceSet.shopMoney.amount);
-        return a;
-      }, {});
-    }
-    Promise.all([
-      fetch(`/orders?shop=${shop}`).then(r=>r.json()),
-      fetch(`/products?shop=${shop}`).then(r=>r.json()),
-      fetch(`/customers?shop=${shop}`).then(r=>r.json())
-    ]).then(([orders, products, customers]) => {
-      // Metrics
-      const totalSales = orders.reduce((s,o) => s + parseFloat(o.totalPriceSet.shopMoney.amount), 0);
-      const totalOrders = orders.length;
-      const totalCustomers = customers.length;
-      const avgOrderValue = totalOrders ? totalSales / totalOrders : 0;
-      const emailCounts = orders.reduce((m, o) => {
-        // Guard against missing customer information
-        const e = o.customer && o.customer.email ? o.customer.email : 'Guest';
-        m[e] = (m[e] || 0) + 1;
-        return m;
-      }, {});
-      const newCustomersCount = Object.values(emailCounts).filter(v=>v===1).length;
-      const returningCustomersCount = Object.values(emailCounts).filter(v=>v>1).length;
-      const prodCounts = orders.reduce((m,o) => {
-        m[o.name] = (m[o.name]||0) + 1;
-        return m;
-      }, {});
-      const sortedProds = Object.entries(prodCounts).sort((a,b)=>b[1]-a[1]);
-      const bestProduct = sortedProds[0]?.[0] || 'N/A';
-      const leastProduct = sortedProds[sortedProds.length-1]?.[0] || 'N/A';
 
-      // Set overview
-      document.getElementById('totalSales').textContent = '₹' + totalSales.toFixed(2);
-      document.getElementById('totalOrders').textContent = totalOrders;
-      document.getElementById('totalCustomers').textContent = totalCustomers;
-      document.getElementById('avgOrderValue').textContent = '₹' + avgOrderValue.toFixed(2);
-      document.getElementById('newCustomers').textContent = newCustomersCount;
-      document.getElementById('returningCustomers').textContent = returningCustomersCount;
-      document.getElementById('bestProduct').textContent = bestProduct;
-      document.getElementById('leastProduct').textContent = leastProduct;
-
-      // Fill tables
-      function fillTable(id, data, cols) {
-        const tb = document.getElementById(id + '-table');
-        data.forEach(row => {
-          const tr = document.createElement('tr');
-          cols.forEach(c => {
-            const td = document.createElement('td');
-            td.textContent = row[c];
-            tr.appendChild(td);
-          });
-          tb.appendChild(tr);
-        });
-      }
-      fillTable('orders', orders.map(o=>({ Order:'#'+o.name, Date:new Date(o.createdAt).toLocaleDateString(), Total:'₹'+parseFloat(o.totalPriceSet.shopMoney.amount).toFixed(2) })), ['Order','Date','Total']);
-      fillTable('products', products.map(p=>({ Title:p.title, Inventory:p.totalInventory })), ['Title','Inventory']);
-      fillTable('customers', customers.map(c=>({ Name:c.displayName, Email:c.email })), ['Name','Email']);
-
-      // Charts
-      const salesBy = groupByDate(orders, 'createdAt');
-      const dates = Object.keys(salesBy).sort();
-      new Chart(document.getElementById('salesChart'), { type:'line', data:{ labels:dates, datasets:[{ label:'Sales', data:dates.map(d=>salesBy[d]), tension:0.4 }] } });
-      new Chart(document.getElementById('customerChart'), { type:'doughnut', data:{ labels:['New','Returning'], datasets:[{ data:[newCustomersCount, returningCustomersCount] }] } });
-      const top5 = sortedProds.slice(0,5);
-      new Chart(document.getElementById('productChart'), { type:'bar', data:{ labels:top5.map(x=>x[0]), datasets:[{ label:'Orders', data:top5.map(x=>x[1]) }] } });
-      new Chart(document.getElementById('ordersChart'), { type:'bar', data:{ labels:dates, datasets:[{ label:'Orders', data:dates.map(d=>orders.filter(o=>o.createdAt.startsWith(d)).length) }] } });
-    });
+    // Page load hote hi SSO redirect call karo
+    fetch('/sso-redirect?shop=' + encodeURIComponent(shop))
+      .then(res => {
+        if (!res.ok) throw new Error('Server error: ' + res.status);
+        return res.json();
+      })
+      .then(data => {
+        if (data.redirectUrl) {
+          // Redirect to profitfirstanalytics.co.in with SSO token
+          window.location.href = data.redirectUrl;
+        } else {
+          throw new Error('No redirect URL received');
+        }
+      })
+      .catch(err => {
+        console.error('SSO Error:', err);
+        document.getElementById('error-box').style.display = 'block';
+      });
   </script>
+
 </body>
 </html>
