@@ -105,7 +105,7 @@ async function getToken(shop) {
   if (cache.has(shop)) return cache.get(shop);
   const command = new GetCommand({
     TableName: process.env.DYNAMODB_TOKENS_TABLE,
-    Key: { shop },
+    Key: { shop_domain: shop },
   });
   const { Item } = await docClient.send(command);
   if (Item) {
