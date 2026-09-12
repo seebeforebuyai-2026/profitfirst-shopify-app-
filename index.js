@@ -253,6 +253,8 @@ app.get("/app", (req, res) => {
 
 app.get("/sso-redirect", async (req, res) => {
   const { shop } = req.query;
+  const apiUrl =
+    process.env.PROFITFIRST_API_URL || "https://api.profitfirstanalytics.co.in";
   if (!shop) return res.status(400).json({ error: "Missing shop parameter" });
 
   try {
@@ -343,7 +345,8 @@ app.get("/sso-redirect", async (req, res) => {
       {
         headers: {
           "Content-Type": "application/json",
-          "x-service-secret": process.env.INTERNAL_SERVICE_SECRET,
+          "x-service-secret":
+            process.env.INTERNAL_SERVICE_SECRET || "ProfitfirstBuildBySachin",
         },
       },
     );
