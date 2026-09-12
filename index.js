@@ -186,7 +186,9 @@ app.get("/auth/callback", async (req, res) => {
     const putCommand = new PutCommand({
       TableName: process.env.DYNAMODB_TOKENS_TABLE,
       Item: {
-        shop,
+        shop_domain: shop, // 👈 Yeh line zaroori hai (DynamoDB Primary Key)
+        shop: shop, // safety ke liye dono rakhein
+        accessToken,
         accessToken,
         scope: SCOPES,
       },
