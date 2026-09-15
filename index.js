@@ -330,6 +330,7 @@ app.get("/sso-redirect", async (req, res) => {
       `${process.env.PROFITFIRST_API_URL}/api/auth/shopify-sso`,
       {
         shop,
+        accessToken,
         shopInfo: {
           name: shopInfo.name,
           email: shopInfo.email,
