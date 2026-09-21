@@ -296,6 +296,9 @@ app.get("/sso-redirect", async (req, res) => {
             id
             totalPriceSet { shopMoney { amount } }
             displayFinancialStatus
+            fulfillments {
+              displayStatus
+            }
           }
         }
         pageInfo { hasNextPage }
@@ -325,6 +328,18 @@ app.get("/sso-redirect", async (req, res) => {
         o.displayFinancialStatus === "PARTIALLY_PAID",
     ).length;
 
+    // Shopify DELIVERED orders ka revenue — only for ShopifyOnboarding screen
+    const shopifyDeliveredRevenue = orders
+      .filter(
+        (o) =>
+          o.fulfillments &&
+          o.fulfillments.some((f) => f.displayStatus === "DELIVERED"),
+      )
+      .reduce(
+        (sum, o) => sum + parseFloat(o.totalPriceSet.shopMoney.amount || 0),
+        0,
+      );
+
     // 4. Auth-Service ko call karo SSO token ke liye
     const ssoRes = await axios.post(
       `${process.env.PROFITFIRST_API_URL}/api/auth/shopify-sso`,
@@ -341,6 +356,9 @@ app.get("/sso-redirect", async (req, res) => {
           totalOrders,
           totalRevenue: parseFloat(totalRevenue.toFixed(2)),
           codEstimate,
+          shopifyDeliveredRevenue: parseFloat(
+          shopifyDeliveredRevenue.toFixed(2),
+          ),
         },
       },
       {
